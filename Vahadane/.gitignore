@@ -1,0 +1,7 @@
+/.idea
+/venv
+/.ipy*
+/__pycache__
+/output/*
+/data/*
+/.DS_Store

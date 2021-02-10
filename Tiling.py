@@ -97,23 +97,32 @@ def full_pictures_to_tiles(imgfilename, inputdir, outputdir):
         os.mkdir(os.path.join(outputdir, sample_id))
     except:
         print("The Folder for the sample id {} already exist".format(sample_id))
+    try:
+        os.mkdir(os.path.join(outputdir, sample_id, 'accept'))
+    except:
+        print('Accept folder already created')  
+    try:
+        os.mkdir(os.path.join(outputdir, sample_id, 'reject'))
+    except:
+        print('Reject  folder already created')  
 
     if imgfilename.find(".svs") != -1 or imgfilename.find("mrxs") != -1:
         filepath = os.path.join(inputdir, imgfilename) 
         img  = OpenSlide(filepath)
         if imgfilename.find(".svs") != -1 :
-                sz=2048
-                seq=1748
-        else:
-            sz=1024
-            seq=874
-    elif  imgfilename.find("mrxs") != -1:
-        if str(img.properties.values.__self__.get("mirax.GENERAL.OBJECTIVE_MAGNIFICATION")) == 20:
-            sz=1024
-            seq=874
-        else: 
-            sz=2048
-            seq=1748
+            if str(img.properties.values.__self__.get('tiff.ImageDescription')).split("|")[1] == "AppMag = 40":
+                sz=1024
+                seq=924
+            else:
+                sz=512
+                seq=462
+        elif  imgfilename.find("mrxs") != -1:
+            if str(img.properties.values.__self__.get("mirax.GENERAL.OBJECTIVE_MAGNIFICATION")) == 40:
+                sz=1024
+                seq=924
+            else: 
+                sz=512
+                seq=462
     [w, h] = img.dimensions
     for x in range(1, w, seq):
         for y in range(1, h, seq):
@@ -128,8 +137,11 @@ def full_pictures_to_tiles(imgfilename, inputdir, outputdir):
                 mean_ch = np.mean(pix, axis=2)
                 bright_pixels_count = np.argwhere(mean_ch > 220).shape[0]
                 if counts[np.argwhere(unique<=15)].sum() < 512*512*0.6 and bright_pixels_count <  512*512*0.5 :
-                    print( os.path.join(outputdir, sample_id, sample_id + "_" +  str(x) + "_" + str(y) + '.jpg'  ))
-                    img111.save( os.path.join(outputdir, sample_id, sample_id + "_" +  str(x) + "_" + str(y) + '.jpg'  ) , 'JPEG', optimize=True, quality=94)
+                    #print( os.path.join(outputdir, sample_id, sample_id + "_" +  str(x) + "_" + str(y) + '.jpg'  ))
+                    img111.save( os.path.join(outputdir, sample_id,'accept', sample_id + "_" +  str(x) + "_" + str(y) + '.jpg'  ) , 'JPEG', optimize=True, quality=94)
+                else:
+                    img111.save( os.path.join(outputdir, sample_id,'reject', sample_id + "_" +  str(x) + "_" + str(y) + '.jpg'  ) , 'JPEG', optimize=True, quality=94) 
+
             except:
                 with open('errorReadingSlides.txt', 'a') as f:
                     f.write('\n{}\t{}\t{}'.format(sample_id,x,y))
@@ -149,10 +161,14 @@ if __name__ == "__main__":
     for f in all_f:
         if f.find(".svs") != -1 or f.find(".mrxs") != -1:
             sample = f.split('.')[0]
+            print('Sample ', sample, '\n')
             images_l.append(f)
-    array_of_args = [(i, inputdir, outputdir) for i in images_l]
-    with Pool(80) as p:
-      p.starmap(full_pictures_to_tiles, array_of_args)
+            full_pictures_to_tiles(f, inputdir, outputdir) 
+            print('\n\n')
+
+    #`array_of_args = [(i, inputdir, outputdir) for i in images_l]
+    #`with Pool(80) as p:
+    #`  p.starmap(full_pictures_to_tiles, array_of_args)
 
         # for f in all_f:
     #     if f.find(".svs") != -1 or f.find(".mrxs") != -1:
