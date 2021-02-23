@@ -143,7 +143,7 @@ def full_pictures_to_tiles(imgfilename, inputdir, outputdir):
                     img111.save( os.path.join(outputdir, sample_id,'reject', sample_id + "_" +  str(x) + "_" + str(y) + '.jpg'  ) , 'JPEG', optimize=True, quality=94) 
 
             except:
-                with open('errorReadingSlides.txt', 'a') as f:
+                with open('errorReadingSlides_0_77.txt', 'a') as f:
                     f.write('\n{}\t{}\t{}'.format(sample_id,x,y))
                 #print('error Tiles {}, pos {}, {} '.format(sample_id, x, y  ))
 if __name__ == "__main__":
@@ -162,8 +162,10 @@ if __name__ == "__main__":
         if f.find(".svs") != -1 or f.find(".mrxs") != -1:
             sample = f.split('.')[0]
             print('Sample ', sample, '\n')
-            images_l.append(f)
-            full_pictures_to_tiles(f, inputdir, outputdir) 
+            num = int(f.split('.')[0].split('TNE')[-1])
+            if num > 0  and num <= 77:
+                images_l.append(f)
+            #full_pictures_to_tiles(f, inputdir, outputdir) 
             print('\n\n')
 
     #`array_of_args = [(i, inputdir, outputdir) for i in images_l]
